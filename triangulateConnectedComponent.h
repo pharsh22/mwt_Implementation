@@ -22,8 +22,9 @@ void triangulate_connected_component(Arrangement_2 &arr, int level, std::vector<
 	Arrangement_2::Ccb_halfedge_const_circulator reflex_chain_start, reflex_chain_end;
 	Arrangement_2::Ccb_halfedge_const_circulator add_end_node, add_start_node;
 	Arrangement_2::Ccb_halfedge_const_circulator c1, c2;
+	Arrangement_2::Ccb_halfedge_const_circulator checkWithinFaceNode;
 
-	bool intersection_test, chain_end_is_vl;
+	bool intersection_test, chain_end_is_vl, visibility_test;
 
 	curr_edge = circ;
 	next_edge = --curr_edge; // going in counterclockwise direction
@@ -113,11 +114,15 @@ void triangulate_connected_component(Arrangement_2 &arr, int level, std::vector<
 		// start_node is visible to vl_node
 		bool vjk_vl_intersects, neighbor_condition;
 
-		vjk_vl_intersects = does_intersect(Segment_2(start_node->source()->point(), vl_node->source()->point() ), arr);
+		checkWithinFaceNode = start_node;
+		--checkWithinFaceNode;
+
+		visibility_test = is_visible(start_node->source()->point(), checkWithinFaceNode->source()->point(), vl_node->source()->point(), arr);
+
 		neighbor_condition = check_neighbors(start_node->source()->point(), vl_minus_1_node->source()->point(), level+1);
 
 		// Check if vl_minus_1_node and start_node are neighbors
-		if(!vjk_vl_intersects)
+		if(visibility_test)
 		{
 			if(neighbor_condition)
 			{
@@ -163,8 +168,11 @@ void triangulate_connected_component(Arrangement_2 &arr, int level, std::vector<
 
 					// Check if vq_plus_1_index is neighbor of vl_plus_1_node and Vq is visible to vl_plus_1_node
 					// This function is just to add more reflex vertices to the maximal reflex chain
+					checkWithinFaceNode = vq_node;
+					--checkWithinFaceNode;
+
 					if(check_neighbors(vq_plus_1_node->source()->point(), vl_plus_1_node->source()->point(), level+1) &&
-						!does_intersect(Segment_2(vq_node->source()->point(), vl_plus_1_node->source()->point()), arr) )
+						is_visible(vq_node->source()->point(), checkWithinFaceNode->source()->point(), vl_plus_1_node->source()->point(), arr) )
 					{
 						reflex_chain_start = vl_plus_1_node;
 						reflex_chain_end = vl_plus_1_node;
@@ -187,7 +195,10 @@ void triangulate_connected_component(Arrangement_2 &arr, int level, std::vector<
 
 						for(c1=reflex_chain_start; c1 != reflex_chain_end; --c1)
 						{
-							if(does_intersect(Segment_2(c1->source()->point(), vq_node->source()->point()), arr))
+							checkWithinFaceNode = c1;
+							--checkWithinFaceNode;
+
+							if(is_visible(vq_node->source()->point(), checkWithinFaceNode->source()->point(), c1->source()->point(), arr))
 							{
 								reflex_chain_end = ++c1;
 								rce_index = (rce_index-1+number_of_vertices)%number_of_vertices;
@@ -223,9 +234,12 @@ void triangulate_connected_component(Arrangement_2 &arr, int level, std::vector<
 				after_start_node = --start_node;
 				++start_node;
 
-				intersection_test = does_intersect(Segment_2(vl_node->source()->point(), start_node->source()->point() ), arr);
+				checkWithinFaceNode = start_node;
+				--checkWithinFaceNode;
 
-				if(!intersection_test)
+				visibility_test = is_visible(start_node->source()->point(), checkWithinFaceNode->source()->point(), vl_node->source()->point(), arr);
+
+				if(visibility_test)
 				{
 					arr.insert_at_vertices(Segment_2(vl_node->source()->point() , start_node->source()->point()) , h1->source(), h2->source());
 					++number_of_edges_added;
@@ -255,9 +269,12 @@ void triangulate_connected_component(Arrangement_2 &arr, int level, std::vector<
 						--c1;
 						h2 = arr.non_const_handle(c1);
 
-						intersection_test = does_intersect(Segment_2(vl_node->source()->point(), c1->source()->point() ), arr);
+						checkWithinFaceNode = c1;
+						--checkWithinFaceNode;
 
-						if(!intersection_test)
+						visibility_test = is_visible(c1->source()->point(), checkWithinFaceNode->source()->point(), vl_node->source()->point(), arr);
+
+						if(visibility_test)
 						{
 							arr.insert_at_vertices(Segment_2(vl_node->source()->point() , c1->source()->point()) , h1->source(), h2->source());
 							++number_of_edges_added;
@@ -303,9 +320,12 @@ void triangulate_connected_component(Arrangement_2 &arr, int level, std::vector<
 						--c2;
 						h2 = arr.non_const_handle(c1);
 
-						intersection_test = does_intersect(Segment_2(start_node->source()->point(), c1->source()->point() ), arr);
+						checkWithinFaceNode = start_node;
+						--checkWithinFaceNode;
 
-						if(!intersection_test)
+						visibility_test = is_visible(start_node->source()->point(), checkWithinFaceNode->source()->point(), c1->source()->point(), arr);
+
+						if(visibility_test)
 						{
 							arr.insert_at_vertices(Segment_2(start_node->source()->point() , c1->source()->point()) , h1->source(), h2->source());
 							++number_of_edges_added;

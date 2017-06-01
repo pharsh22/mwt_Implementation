@@ -133,3 +133,34 @@ bool does_intersect(Segment_2 test_segment, const Arrangement_2 &arr)
 
 	return false;
 }
+
+double checkPosition(Point_2 a, Point_2 c, Point_2 b)
+{
+/*
+Check if point c is on the left of the segment ab
+*/
+
+	double position;
+
+	position = (b.x()-a.x())*(c.y()-a.y()) - (b.y()-a.y())*(c.x()-a.x());
+
+	return position;
+}
+
+bool is_visible(Point_2 a, Point_2 c, Point_2 b, const Arrangement_2 &arr)
+{
+	double position;
+	// std::cout << "In the visibility function\n";
+
+	position = checkPosition(a,c,b);
+	// std::cout << "Position = " << position << "\n";
+
+	if(position > 0) // indicates that c is on the left of segment ab
+	{
+		// check if it diesn't intersect any other segment in the arrangement
+		return !(does_intersect(Segment_2(a, b), arr)); // if doesn't intersect, it's visible
+	}
+
+	else
+		return false;
+}

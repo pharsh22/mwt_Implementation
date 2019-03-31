@@ -1,3 +1,5 @@
+Please contact the author if you want to use the work in part or whole at pharsh22 [at] vt [dot] edu
+
 ===== To run the algorithm which is implemented in c++ ======
 Required Libraries
 	- CGAL
